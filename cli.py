@@ -1,0 +1,65 @@
+"""
+Copyright 2024 Khej-Trhyk (aka 308K) © All rights reserved.
+Copyleft 2024 Khej-Trhyk (aka 308K) 🄯 All wrongs reserved.
+This file is part of FLUX.1-dev-demo.
+FLUX.1-dev-demo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+FLUX.1-dev-demo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with FLUX.1-dev-demo. If not, see <https://www.gnu.org/licenses/>. 
+"""
+import argparse
+import torch
+from diffusers import FluxPipeline
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+MAX_SEED = np.iinfo(np.int32).max
+
+
+def generate_image(prompt, height, width, guidance_scale, num_inference_steps, max_sequence_length, output_path, seed):
+    pipe = FluxPipeline.from_pretrained("./models/FLUX.1-dev", torch_dtype=torch.bfloat16)
+    pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU. Remove this if you have enough GPU power
+
+    image = pipe(
+        prompt,
+        height=height,
+        width=width,
+        guidance_scale=guidance_scale,
+        num_inference_steps=num_inference_steps,
+        max_sequence_length=max_sequence_length,
+        generator=torch.Generator(device).manual_seed(seed)
+    ).images[0]
+    
+    if output_path:
+        image.save(output_path)
+    
+    plt.imshow(image)
+    plt.axis('off')
+    plt.show()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate an image using FluxPipeline")
+    parser.add_argument("prompt", type=str, help="The prompt for image generation")
+    parser.add_argument("-H", "--height", type=int, default=256, help="The height of the generated image")
+    parser.add_argument("-W", "--width", type=int, default=256, help="The width of the generated image")
+    parser.add_argument("--guidance_scale", type=float, default=3.5, help="The guidance scale for image generation")
+    parser.add_argument("--steps", type=int, default=14, help="The number of inference steps")
+    parser.add_argument("--max_sequence_length", type=int, default=128, help="The maximum sequence length")
+    parser.add_argument("-s", "--seed", type=int, default=random.randint(0, MAX_SEED), help="The seed for random number generation")
+    parser.add_argument("-S", "--save", nargs='?', const=True, help="The path to save the generated image")
+
+    args = parser.parse_args()
+
+    if args.save is True:
+        args.save = f"flux-dev-{random.randint(0, 1000000)}.png"
+
+    generate_image(
+        args.prompt,
+        args.height,
+        args.width,
+        args.guidance_scale,
+        args.steps,
+        args.max_sequence_length,
+        args.save
+    )

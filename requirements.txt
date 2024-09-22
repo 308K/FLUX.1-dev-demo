@@ -1,0 +1,6 @@
+argparse
+diffusers
+matplotlib
+gradio
+numpy
+transformers
