@@ -11,6 +11,22 @@ cd FLUX.1-dev-demo
 pip install -r requirements.txt
 ```
 3. Download the pre-trained models [FLUX.1-dev-demo](https://huggingface.co/black-forest-labs/FLUX.1-dev) and [teaf1](https://huggingface.co/madebyollin/taef1) and place it in the ./models directory.
+### Configuration
+Edit the `config.json` file to set your preferred default values and paths for the models.
+Example:
+```json
+{
+    "device": "cuda", 
+    "save_VRAM": true,
+    "FLUX.1-dev_local_path": "./models/FLUX.1-dev",
+    "taef1_local_path": "./models/taef1",
+    "height": 512,
+    "width": 512,
+    "guidance_scale": 3.5,
+    "inference_steps": 14,
+    "max_sequence_length": 128
+}
+```
 ### Usage
 #### CLI
 Generate an image using the CLI:

@@ -13,17 +13,24 @@ import random
 from transformers import CLIPTextModel, CLIPTokenizer, T5EncoderModel, T5TokenizerFast
 from diffusers import  DiffusionPipeline, FlowMatchEulerDiscreteScheduler, AutoencoderTiny, AutoencoderKL
 from live_preview_helpers import calculate_shift, retrieve_timesteps, flux_pipe_call_that_returns_an_iterable_of_images
+import json
 
+with open('config.json', 'r', encoding='utf-8') as config_file:
+    config = json.load(config_file)
+
+if not config['device']:
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+else:
+    device = config['device']
 dtype = torch.bfloat16
-device = "cuda" if torch.cuda.is_available() else "cpu"
-# device = "cpu"
 
 torch.cuda.empty_cache()
 
-taef1 = AutoencoderTiny.from_pretrained("./models/taef1", torch_dtype=dtype).to(device)
-good_vae = AutoencoderKL.from_pretrained("./models/FLUX.1-dev", subfolder="vae", torch_dtype=dtype).to(device)
-pipe = DiffusionPipeline.from_pretrained("./models/FLUX.1-dev", torch_dtype=dtype, vae=taef1).to(device)
-pipe.enable_model_cpu_offload() # save some VRAM by offloading the model to CPU. Remove this if you have enough GPU power
+taef1 = AutoencoderTiny.from_pretrained(config['taef1_local_path'], torch_dtype=dtype).to(device)
+good_vae = AutoencoderKL.from_pretrained(config['FLUX.1-dev_local_path'], subfolder="vae", torch_dtype=dtype).to(device)
+pipe = DiffusionPipeline.from_pretrained(config['FLUX.1-dev_local_path'], torch_dtype=dtype, vae=taef1).to(device)
+if config['save_VRAM']:
+    pipe.enable_model_cpu_offload()
 torch.cuda.empty_cache()
 
 MAX_SEED = np.iinfo(np.int32).max
@@ -67,10 +74,10 @@ interface = gr.Interface(
         gr.components.Textbox(lines=2, placeholder="Enter prompt here..."),
         gr.components.Slider(0, MAX_SEED, step=1, value=42, label="Seed"),
         gr.components.Checkbox(label="Randomize Seed"),
-        gr.components.Slider(256, MAX_IMAGE_SIZE, step=256, value=256, label="Width"),
-        gr.components.Slider(256, MAX_IMAGE_SIZE, step=256, value=256, label="Height"),
-        gr.components.Slider(0.5, 10.0, step=3.5, value=3.5, label="Guidance Scale"),
-        gr.components.Slider(1, 100, step=14, value=14, label="Number of Inference Steps"),
+        gr.components.Slider(256, MAX_IMAGE_SIZE, step=256, value=config['width'], label="Width"),
+        gr.components.Slider(256, MAX_IMAGE_SIZE, step=256, value=config['height'], label="Height"),
+        gr.components.Slider(0.5, 10.0, step=3.5, value=config['guidance_scale'], label="Guidance Scale"),
+        gr.components.Slider(1, 100, step=14, value=config['inference_steps'], label="Number of Inference Steps"),
     ],
     outputs=[
         gr.components.Image(type="pil", label="Generated Image"),
