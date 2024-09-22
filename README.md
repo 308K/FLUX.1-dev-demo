@@ -19,13 +19,13 @@ python cli.py "your prompt" -H 256 -W 256 --guidance_scale 3.5 --steps 14 --max_
 ```
 Parameter descriptions:
 * `prompt`: The prompt for image generation.
-* `-H`, --height: The height of the generated image (default 256).
-* `-W`, --width: The width of the generated image (default 256).
+* `-H`, `--height`: The height of the generated image (default 256).
+* `-W`, `--width`: The width of the generated image (default 256).
 * `--guidance_scale`: The guidance scale for image generation (default 3.5).
 * `--steps`: The number of inference steps (default 14).
 * `--max_sequence_length`: The maximum sequence length (default 128).
-* `-s, --seed`: The seed for random number generation (default random).
-* `-S, --save`: The path to save the generated image (optional).
+* `-s`, `--seed`: The seed for random number generation (default random).
+* `-S`, `--save`: The path to save the generated image (optional).
 
 #### WebUI
 1. Start the WebUI:
